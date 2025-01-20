@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
-import "./App.css"; // Import the CSS file
+import "./App.css";
+import moment from "moment";
 
-const socket = io("http://localhost:5000");
+const socket = io("http://192.168.1.5:5000");
 
 function App() {
-  const [username, setUsername] = useState(""); // Store full username
-  const [message, setMessage] = useState(""); // Store message text
-  const [messages, setMessages] = useState([]); // Store all messages
-  const [isTyping, setIsTyping] = useState(""); // Typing indicator
-  const [typingTimeout, setTypingTimeout] = useState(null); // To manage typing timeout
-  const [isDarkMode, setIsDarkMode] = useState(false); // Dark Mode toggle
+  const [username, setUsername] = useState("");
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [isTyping, setIsTyping] = useState("");
+  const [typingTimeout, setTypingTimeout] = useState(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [userList, setUserList] = useState([]); // Track users online
 
   useEffect(() => {
     // Listen for incoming messages
@@ -23,9 +25,15 @@ function App() {
       setIsTyping(username ? `${username} is typing...` : "");
     });
 
+    // Listen for user join and leave events
+    socket.on("user-list", (users) => {
+      setUserList(users);
+    });
+
     return () => {
       socket.off("receive-message");
       socket.off("typing");
+      socket.off("user-list");
     };
   }, []);
 
@@ -47,15 +55,13 @@ function App() {
   };
 
   const handleTyping = () => {
-    if (message) {
+    if (message.trim()) {
       socket.emit("typing", username); // Emit typing event to backend
 
-      // Clear the existing timeout if there's one
       if (typingTimeout) {
         clearTimeout(typingTimeout);
       }
 
-      // Set a new timeout to clear the typing indicator after 1 second of inactivity
       const newTimeout = setTimeout(() => {
         socket.emit("typing", ""); // Stop typing event when user stops typing
       }, 1000);
@@ -66,9 +72,22 @@ function App() {
     }
   };
 
-  // Toggle Dark Mode
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
+  };
+
+  const handleDeleteMessage = (index) => {
+    const updatedMessages = messages.filter((_, i) => i !== index);
+    setMessages(updatedMessages);
+    socket.emit("delete-message", index); // Send delete event to server
+  };
+
+  const handleEditMessage = (index, newMessage) => {
+    const updatedMessages = messages.map((msg, i) =>
+      i === index ? { ...msg, message: newMessage } : msg
+    );
+    setMessages(updatedMessages);
+    socket.emit("edit-message", { index, newMessage }); // Send edit event to server
   };
 
   return (
@@ -80,7 +99,6 @@ function App() {
         </button>
       </div>
 
-      {/* Input for username */}
       {!username && (
         <div>
           <textarea
@@ -93,7 +111,6 @@ function App() {
         </div>
       )}
 
-      {/* Chat box */}
       {username && (
         <>
           <div className="chat-box">
@@ -105,7 +122,24 @@ function App() {
                 }`}
               >
                 <span className="username">{msg.username}:</span> {msg.message}
-                <span className="timestamp"> {msg.timestamp}</span>
+                <span className="timestamp">{msg.timestamp}</span>
+                {msg.username === username && (
+                  <div>
+                    <button onClick={() => handleDeleteMessage(index)}>
+                      Delete
+                    </button>
+                    <button
+                      onClick={() =>
+                        handleEditMessage(
+                          index,
+                          prompt("Edit your message:", msg.message)
+                        )
+                      }
+                    >
+                      Edit
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -123,10 +157,19 @@ function App() {
             <button onClick={sendMessage}>Send</button>
           </div>
 
-          {/* Typing indicator */}
           {isTyping && <div className="typing">{isTyping}</div>}
         </>
       )}
+
+      {/* Display users online */}
+      <div>
+        <h3>Online Users</h3>
+        <ul>
+          {userList.map((user, index) => (
+            <li key={index}>{user}</li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

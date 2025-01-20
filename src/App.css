@@ -73,12 +73,12 @@
 }
 
 .message.sent {
-  background-color: #3663b2;
+  background-color: #336bff;
   align-self: flex-end;
 }
 
 .message.received {
-  background-color: #849cd5;
+  background-color: #5e33ff;
 }
 
 /* Input and Button Styles */
@@ -120,7 +120,7 @@
 
 .input-area input:focus {
   outline: none;
-  border-color: #4caf50;
+  border-color: #3810d5;
 }
 
 /* Styling for textarea */
@@ -136,5 +136,18 @@ textarea {
 
 textarea:focus {
   outline: none;
-  border-color: #4caf50;
+  border-color: #3810d5;
+}
+
+button {
+  background-color: #336bff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #2558b5;
 }
