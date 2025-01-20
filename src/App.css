@@ -138,16 +138,3 @@ textarea:focus {
   outline: none;
   border-color: #3810d5;
 }
-
-button {
-  background-color: #336bff;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-button:hover {
-  background-color: #2558b5;
-}
