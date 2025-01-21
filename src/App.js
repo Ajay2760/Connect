@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import "./App.css";
-import moment from "moment";
 
 const socket = io("http://192.168.1.5:5000");
 
@@ -12,12 +11,12 @@ function App() {
   const [isTyping, setIsTyping] = useState("");
   const [typingTimeout, setTypingTimeout] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [userList, setUserList] = useState([]); // Track users online
+  const [onlineUsers, setOnlineUsers] = useState([]); // List of online users
 
   useEffect(() => {
     // Listen for incoming messages
     socket.on("receive-message", (data) => {
-      setMessages((prev) => [...prev, data]); // Only update messages here
+      setMessages((prev) => [...prev, data]);
     });
 
     // Listen for typing events
@@ -25,9 +24,9 @@ function App() {
       setIsTyping(username ? `${username} is typing...` : "");
     });
 
-    // Listen for user join and leave events
+    // Listen for online users
     socket.on("user-list", (users) => {
-      setUserList(users);
+      setOnlineUsers(users); // Update the list of online users
     });
 
     return () => {
@@ -42,12 +41,10 @@ function App() {
       const timestamp = new Date().toLocaleTimeString();
       const messageData = { username, message, timestamp };
 
-      // Emit message to the server
-      socket.emit("send-message", messageData);
+      socket.emit("send-message", messageData); // Emit the message to the server
 
-      // Clear the input field after sending
-      setMessage("");
-      setIsTyping(""); // Clear typing indicator when message is sent
+      setMessage(""); // Clear the input field
+      setIsTyping(""); // Clear typing indicator
       clearTimeout(typingTimeout); // Clear the typing timeout
     } else {
       alert("Please enter both username and message.");
@@ -56,38 +53,24 @@ function App() {
 
   const handleTyping = () => {
     if (message.trim()) {
-      socket.emit("typing", username); // Emit typing event to backend
+      socket.emit("typing", username);
 
       if (typingTimeout) {
         clearTimeout(typingTimeout);
       }
 
       const newTimeout = setTimeout(() => {
-        socket.emit("typing", ""); // Stop typing event when user stops typing
+        socket.emit("typing", "");
       }, 1000);
 
-      setTypingTimeout(newTimeout); // Store the timeout ID
+      setTypingTimeout(newTimeout);
     } else {
-      socket.emit("typing", ""); // Stop typing event when input is cleared
+      socket.emit("typing", "");
     }
   };
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
-  };
-
-  const handleDeleteMessage = (index) => {
-    const updatedMessages = messages.filter((_, i) => i !== index);
-    setMessages(updatedMessages);
-    socket.emit("delete-message", index); // Send delete event to server
-  };
-
-  const handleEditMessage = (index, newMessage) => {
-    const updatedMessages = messages.map((msg, i) =>
-      i === index ? { ...msg, message: newMessage } : msg
-    );
-    setMessages(updatedMessages);
-    socket.emit("edit-message", { index, newMessage }); // Send edit event to server
   };
 
   return (
@@ -99,11 +82,15 @@ function App() {
         </button>
       </div>
 
+      {/* Input for username */}
       {!username && (
         <div>
           <textarea
             value={username}
-            onChange={(e) => setUsername(e.target.value)} // Capture the full username
+            onChange={(e) => {
+              setUsername(e.target.value);
+              socket.emit("user-joined", e.target.value); // Emit event when user joins
+            }}
             placeholder="Enter your full username"
             rows="2"
             style={{ width: "80%", marginBottom: "20px", padding: "10px" }}
@@ -111,6 +98,7 @@ function App() {
         </div>
       )}
 
+      {/* Chat box */}
       {username && (
         <>
           <div className="chat-box">
@@ -122,24 +110,7 @@ function App() {
                 }`}
               >
                 <span className="username">{msg.username}:</span> {msg.message}
-                <span className="timestamp">{msg.timestamp}</span>
-                {msg.username === username && (
-                  <div>
-                    <button onClick={() => handleDeleteMessage(index)}>
-                      Delete
-                    </button>
-                    <button
-                      onClick={() =>
-                        handleEditMessage(
-                          index,
-                          prompt("Edit your message:", msg.message)
-                        )
-                      }
-                    >
-                      Edit
-                    </button>
-                  </div>
-                )}
+                <span className="timestamp"> {msg.timestamp}</span>
               </div>
             ))}
           </div>
@@ -150,7 +121,7 @@ function App() {
               value={message}
               onChange={(e) => {
                 setMessage(e.target.value);
-                handleTyping(); // Trigger typing event on change
+                handleTyping();
               }}
               placeholder="Type a message..."
             />
@@ -161,15 +132,17 @@ function App() {
         </>
       )}
 
-      {/* Display users online */}
-      <div>
-        <h3>Online Users</h3>
-        <ul>
-          {userList.map((user, index) => (
-            <li key={index}>{user}</li>
-          ))}
-        </ul>
-      </div>
+      {/* Online Users */}
+      {username && (
+        <div className="online-users">
+          <h3>Online Users ({onlineUsers.length})</h3>
+          <ul>
+            {onlineUsers.map((user, index) => (
+              <li key={index}>{user}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
