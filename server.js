@@ -6,38 +6,34 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins
+    origin: "*",
   },
 });
 
-let users = []; // Track online users
+let onlineUsers = [];
 
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
+  console.log("A user connected");
 
-  // Add user when they join
   socket.on("user-joined", (username) => {
-    if (username && !users.includes(username)) {
-      users.push(username);
-      io.emit("user-list", users); // Broadcast the updated user list
-    }
+    onlineUsers.push(username);
+    io.emit("user-list", onlineUsers);
   });
 
-  // Handle messages
-  socket.on("send-message", (msgData) => {
-    io.emit("receive-message", msgData); // Broadcast the message to all clients
+  socket.on("send-message", (data) => {
+    const timestamp = new Date().toLocaleTimeString();
+    const messageData = { ...data, timestamp };
+    io.emit("receive-message", messageData); // Send the message with timestamp
   });
 
-  // Handle typing event
-  socket.on("typing", (username) => {
-    socket.broadcast.emit("typing", username); // Broadcast typing status
+  socket.on("user-left", (username) => {
+    onlineUsers = onlineUsers.filter((user) => user !== username);
+    io.emit("user-list", onlineUsers);
+    io.emit("user-left", username);
   });
 
-  // Remove user when they disconnect
   socket.on("disconnect", () => {
-    users = users.filter((user) => user !== socket.username);
-    io.emit("user-list", users); // Broadcast the updated user list
-    console.log("A user disconnected:", socket.id);
+    console.log("User disconnected");
   });
 });
 
