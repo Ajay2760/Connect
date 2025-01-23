@@ -119,9 +119,9 @@
 /* Timestamp Styling */
 .timestamp {
   display: block;
-  font-size: 10px;
+  font-size: 13px;
   margin-top: 5px;
-  color: #0e0d0d;
+  color: #0a0909;
 }
 
 /* Input Area Styling */
@@ -136,7 +136,7 @@
 .textarea {
   flex: 1;
   padding: 10px;
-  border: 1px solid #ddd;
+  border: 1px solid #336bff;
   border-radius: 20px;
   font-size: 14px;
   background-color: #fff;
