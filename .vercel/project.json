@@ -1,0 +1,10 @@
+{
+  "build": {
+    "env": {
+      "NODE_OPTIONS": "--openssl-legacy-provider"
+    }
+  },
+
+  "projectId": "prj_HsmwZNy1gsiL9fxVCluAKNxbpSKj",
+  "orgId": "team_mKrMmauZd3odZuhwsmyifb7S"
+}
