@@ -3,7 +3,7 @@ import { io } from "socket.io-client";
 import EmojiPicker from "emoji-picker-react";
 import "./App.css";
 
-const socket = io("http://localhost:5000");
+const socket = io("https://connect-app-backend-yahy.onrender.com"); // ← Update after deploying backend
 
 function App() {
   const [inputUsername, setInputUsername] = useState(""); // New state for input field
