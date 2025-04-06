@@ -4,8 +4,8 @@ import EmojiPicker from "emoji-picker-react";
 import "./App.css";
 
 const socket = io("https://connect-app-backend-yahy.onrender.com", {
+  transports: ["websocket"],
   withCredentials: true,
-  transports: ['websocket']
 });
 
 function App() {
@@ -396,6 +396,4 @@ function App() {
   );
 }
 
-export default defineConfig({
-  base: "./",
-});
+export default App;
