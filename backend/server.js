@@ -9,8 +9,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "https://connect-chat-dstxts7de-ajay2760s-projects.vercel.app",
-    origin: [process.env.CORS_ORIGIN],
+    origin: "https://connect-chat-q3dlqlhyp-ajay2760s-projects.vercel.app",
     methods: ["GET", "POST"],
   },
 });
