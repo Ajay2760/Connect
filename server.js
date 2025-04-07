@@ -4,9 +4,15 @@ const { Server } = require("socket.io");
 
 const app = express();
 const server = http.createServer(app);
+
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins
+    origin: [
+      "https://connect-chat-q3dlqlhyp-ajay2760s-projects.vercel.app",
+      "http://localhost:3000",
+    ],
+    methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
